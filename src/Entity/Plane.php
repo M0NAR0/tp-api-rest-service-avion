@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\PlaneRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -22,22 +24,7 @@ class Plane
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $name;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $startingPoint;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $arrivalPoint;
-
-    /**
-     * @ORM\Column(type="date")
-     */
-    private $departureDate;
+    private $label;
 
     /**
      * @ORM\Column(type="integer")
@@ -45,59 +32,28 @@ class Plane
     private $seats;
 
     /**
-     * @ORM\Column(type="decimal", precision=5, scale=2)
+     * @ORM\OneToMany(targetEntity=Flight::class, mappedBy="plane")
      */
-    private $price;
+    private $flights;
+
+    public function __construct()
+    {
+        $this->flights = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getLabel(): ?string
     {
-        return $this->name;
+        return $this->label;
     }
 
-    public function setName(string $name): self
+    public function setLabel(string $label): self
     {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    public function getStartingPoint(): ?string
-    {
-        return $this->startingPoint;
-    }
-
-    public function setStartingPoint(string $startingPoint): self
-    {
-        $this->startingPoint = $startingPoint;
-
-        return $this;
-    }
-
-    public function getArrivalPoint(): ?string
-    {
-        return $this->arrivalPoint;
-    }
-
-    public function setArrivalPoint(string $arrivalPoint): self
-    {
-        $this->arrivalPoint = $arrivalPoint;
-
-        return $this;
-    }
-
-    public function getDepartureDate(): ?\DateTimeInterface
-    {
-        return $this->departureDate;
-    }
-
-    public function setDepartureDate(\DateTimeInterface $departureDate): self
-    {
-        $this->departureDate = $departureDate;
+        $this->label = $label;
 
         return $this;
     }
@@ -114,14 +70,32 @@ class Plane
         return $this;
     }
 
-    public function getPrice(): ?string
+    /**
+     * @return Collection|Flight[]
+     */
+    public function getFlights(): Collection
     {
-        return $this->price;
+        return $this->flights;
     }
 
-    public function setPrice(string $price): self
+    public function addFlight(Flight $flight): self
     {
-        $this->price = $price;
+        if (!$this->flights->contains($flight)) {
+            $this->flights[] = $flight;
+            $flight->setPlane($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFlight(Flight $flight): self
+    {
+        if ($this->flights->removeElement($flight)) {
+            // set the owning side to null (unless already changed)
+            if ($flight->getPlane() === $this) {
+                $flight->setPlane(null);
+            }
+        }
 
         return $this;
     }
